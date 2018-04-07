@@ -84,20 +84,23 @@ $app->post('/api/tetris_scores/add', function(Request $request, Response $respon
     }
 });
 
-function push_score($conn, $player, $score) {
+function push_score($conn, $name, $score) {
 
     $sql = "insert into tetris_scores(name, score, date, ip) values(?, ?, ?, ?)";
     try {
         //update database with a prepared statement
         $push = $conn->prepare($sql);
-        $push->bind_param("siss", $player, $score, date('Y-m-d'), $_SERVER['REMOTE_ADDR']);
-        $push->execute();
+        $push->bind_param("siss", $name, $score, date('Y-m-d'), $_SERVER['REMOTE_ADDR']);
+        if($push->execute()) {
+			//keep the table ordered 
+			$conn->query("alter table tetris_scores order by score desc;");
+			echo '{"result": {"message": "Highscore added.", "code": 1}}';
+		} else {
+			echo '{"error": {"text": "Fail to add highscore."}';
+		}
         $push->free_result();
         $push->close();
 
-        //keep the table ordered 
-        $conn->query("alter table tetris_scores order by score desc;");
-        echo '{"result": {"message": "Highscore added.", "code": 1}}';
     } catch (Exception $e) {
         echo '{"error": {"text": $e->getMessage()}}';
     }
