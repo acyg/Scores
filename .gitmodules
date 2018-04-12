@@ -1,0 +1,3 @@
+[submodule "firebase-php"]
+	path = firebase-php
+	url = https://github.com/ktamas77/firebase-php
