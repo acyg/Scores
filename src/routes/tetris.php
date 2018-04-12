@@ -36,7 +36,7 @@ $app->get('/api/tetris_scores/fire', function(Request $request, Response $respon
 			function cmp_score($a, $b) {
 				return $b['score'] - $a['score'];
 			}
-			uasort($data, "cmp_score");
+			usort($data, "cmp_score");
 			$data = json_encode($data);
 
             echo $data;
@@ -86,7 +86,7 @@ $app->get('/api/tetris_scores/fire/player/{name}', function(Request $request, Re
 			function cmp_score($a, $b) {
 				return $b['score'] - $a['score'];
 			}
-			uasort($data, "cmp_score");
+			usort($data, "cmp_score");
 			$data = json_encode($data);
 
             echo $data;
