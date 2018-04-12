@@ -152,8 +152,8 @@ $app->post('/api/tetris_scores/fire/add', function(Request $request, Response $r
 
         if(count($data) < $max_size) {
 			$data = $request->getParsedBody();
-			$data['date'] = date('Y-m-d');
-            $conn->push($path, $data); 
+
+            push_score_fire($conn, $path, $data);
 			echo '{"result": {"message": "Highscore added.", "code": 1}}';
         } else {
 			$data = $conn->get($path, Array('orderBy' => '"score"', 'limitToFirst' => 1));
@@ -163,8 +163,8 @@ $app->post('/api/tetris_scores/fire/add', function(Request $request, Response $r
             $high_score = $data[$key]['score'];
             if($score > $high_score) {
 				$data = $request->getParsedBody();
-				$data['date'] = date('Y-m-d');
-                $conn->set($path.'/'.$key, $data); 
+
+                push_score_fire($conn, $path, $data);
                 echo '{"result": {"message": "Highscore added.", "code": 1}}';
             } else echo '{"result": {"message": "Score is not a highscore.", "code": 0}}';
         }
@@ -174,9 +174,17 @@ $app->post('/api/tetris_scores/fire/add', function(Request $request, Response $r
     
 });
 
+function push_score_fire($conn, $path, $data) {
+
+    $data['date'] = date('Y-m-d');
+    $data['ip-address'] = $_SERVER['REMOTE_ADDR'];
+    $conn->push($path, $data); 
+
+}
+
 function push_score($conn, $name, $score) {
 
-    $sql = "insert into tetris_scores(name, score, date, ip) values(?, ?, ?, ?)";
+    $sql = "insert into tetris_scores(name, score, date, `ip-address`) values(?, ?, ?, ?)";
     try {
         //update database with a prepared statement
         $push = $conn->prepare($sql);
