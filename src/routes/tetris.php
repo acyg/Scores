@@ -32,6 +32,13 @@ $app->get('/api/tetris_scores/fire', function(Request $request, Response $respon
         $data = $conn->get($path);
 
         if($data) {
+			$data = json_decode($data, true);
+			function cmp_score($a, $b) {
+				return $b['score'] - $a['score'];
+			}
+			uasort($data, "cmp_score");
+			$data = json_encode($data);
+
             echo $data;
         } else {
             echo '{"error": {"text": "No data available."}}';
@@ -72,9 +79,16 @@ $app->get('/api/tetris_scores/fire/player/{name}', function(Request $request, Re
     try {
         $fire = new fire();
         $conn = $fire->connect();
-        $data = $conn->get($path); 
+        $data = $conn->get($path, Array('orderBy' => '"name"', 'equalTo' => '"'.$name.'"')); 
 
         if($data) {
+			$data = json_decode($data, true);
+			function cmp_score($a, $b) {
+				return $b['score'] - $a['score'];
+			}
+			uasort($data, "cmp_score");
+			$data = json_encode($data);
+
             echo $data;
         } else {
             echo '{"error": {"text": "No data available."}}';
@@ -132,23 +146,25 @@ $app->post('/api/tetris_scores/fire/add', function(Request $request, Response $r
     try {
         $fire = new fire();
         $conn = $fire->connect();
-        
-        $data = $conn->get($path);
+       	
+        $data = $conn->get($path, Array('shallow' => 'true'));
         $data = json_decode($data, true);
 
-        function cmp_score($a, $b) {
-            return $a['score'] - $b['score'];
-        }
-
-        uasort($data, "cmp_score");
-
         if(count($data) < $max_size) {
-            $conn->push($path, $request->getParsedBody()); 
+			$data = $request->getParsedBody();
+			$data['date'] = date('Y-m-d');
+            $conn->push($path, $data); 
+			echo '{"result": {"message": "Highscore added.", "code": 1}}';
         } else {
+			$data = $conn->get($path, Array('orderBy' => '"score"', 'limitToFirst' => 1));
+			$data = json_decode($data, true);
+
             $key = key($data);
             $high_score = $data[$key]['score'];
-             if($score > $high_score) {
-                $conn->set($path.'/'.$key, $request->getParsedBody()); 
+            if($score > $high_score) {
+				$data = $request->getParsedBody();
+				$data['date'] = date('Y-m-d');
+                $conn->set($path.'/'.$key, $data); 
                 echo '{"result": {"message": "Highscore added.", "code": 1}}';
             } else echo '{"result": {"message": "Score is not a highscore.", "code": 0}}';
         }
