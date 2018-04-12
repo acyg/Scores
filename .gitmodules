@@ -1,3 +1,3 @@
-[submodule "firebase-php"]
-	path = firebase-php
+[submodule "vendor/ktamas77/firebase-php"]
+	path = vendor/ktamas77/firebase-php
 	url = https://github.com/ktamas77/firebase-php
