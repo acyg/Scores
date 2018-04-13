@@ -14,12 +14,13 @@ $app->get('/api/tetris_scores', function(Request $request, Response $response) {
         $result = $conn->query($sql);
 
         if ($conn->errno) {
-            echo $conn->error;
+
+            echo '{"error": {"text": "'.$conn->error.'"}}';
         } else {
             echo json_encode($result->fetch_all($resulttype = MYSQLI_ASSOC));
         }
     } catch (ErrorException $e) {
-        echo '{"error": {"text": $e->getMessage()}}';
+        echo '{"error": {"text": "'.$e->getMessage().'"}}';
     }
 });
 
@@ -30,9 +31,9 @@ $app->get('/api/tetris_scores/fire', function(Request $request, Response $respon
         $fire = new fire();
         $conn = $fire->connect();
         $data = $conn->get($path);
+        $data = json_decode($data, true);
 
         if($data) {
-			$data = json_decode($data, true);
 			function cmp_score($a, $b) {
 				return $b['score'] - $a['score'];
 			}
@@ -44,7 +45,7 @@ $app->get('/api/tetris_scores/fire', function(Request $request, Response $respon
             echo '{"error": {"text": "No data available."}}';
         }
     } catch (ErrorException $e) {
-        echo '{"error": {"text": $e->getMessage()}}';
+        echo '{"error": {"text": "'.$e->getMessage().'"}}';
     }
 });
 
@@ -62,12 +63,13 @@ $app->get('/api/tetris_scores/player/{name}', function(Request $request, Respons
         $result = $conn->query($sql);
 
         if ($conn->errno) {
-            echo $conn->error;
+
+            echo '{"error": {"text": "'.$conn->error.'"}}';
         } else {
             echo json_encode($result->fetch_all($resulttype = MYSQLI_ASSOC));
         }
     } catch (ErrorException $e) {
-        echo '{"error": {"text": $e->getMessage()}}';
+        echo '{"error": {"text": "'.$e->getMessage().'"}}';
     }
 });
 
@@ -80,9 +82,9 @@ $app->get('/api/tetris_scores/fire/player/{name}', function(Request $request, Re
         $fire = new fire();
         $conn = $fire->connect();
         $data = $conn->get($path, Array('orderBy' => '"name"', 'equalTo' => '"'.$name.'"')); 
+        $data = json_decode($data, true);
 
         if($data) {
-			$data = json_decode($data, true);
 			function cmp_score($a, $b) {
 				return $b['score'] - $a['score'];
 			}
@@ -94,7 +96,7 @@ $app->get('/api/tetris_scores/fire/player/{name}', function(Request $request, Re
             echo '{"error": {"text": "No data available."}}';
         }
     } catch (ErrorException $e) {
-        echo '{"error": {"text": $e->getMessage()}}';
+        echo '{"error": {"text": "'.$e->getMessage().'"}}';
     }
 });
 
@@ -103,36 +105,57 @@ $app->post('/api/tetris_scores/add', function(Request $request, Response $respon
     $name = $request->getParam('name');
     $score = $request->getParam('score');
     $max_size = 10;
-
+    
     try {
         $db = new db();
         $conn = $db->connect();
 
-        $sql = "select count(*) 
-			from tetris_scores";
+        $sql = "create database if not exists game_scores";
+        $conn->query($sql);
 
-        $result = $conn->query($sql);
-        if ($result->fetch_row()[0] < $max_size) {
+        $conn->select_db("game_scores");
+        $sql = "show tables like 'tetris_scores'";
+        if(!$conn->query($sql)->num_rows) {
+            $sql = "create table tetris_scores (
+                        name varchar(30) not null,
+                        score int,
+                        date date,
+                        `ip-address` varchar(30)
+                    );";
+            $conn->query($sql);
             push_score($conn, $name, $score);
         } else {
-            $last_offset = ($max_size - 1);
-            $sql = "select score 
-				from tetris_scores
-				limit 1 offset $last_offset";
-            $result = $conn->query($sql);
-            $score_to_beat = $result->fetch_row()[0];
-            if ($score > $score_to_beat) {
-                $sql = "delete 
-					from tetris_scores
-					order by score asc 
-					limit 1";
+            $sql = "select count(*) 
+                from tetris_scores";
 
-                $conn->query($sql);
-                push_score($conn, $name, $score);
-            } else echo '{"result": {"message": "Score is not a highscore.", "code": 0}}';
+            $result = $conn->query($sql);
+            if ($conn->errno) {
+
+                echo '{"error": {"text": "'.$conn->error.'"}}';
+            } else {
+                if ($result->fetch_row()[0] < $max_size) {
+                    push_score($conn, $name, $score);
+                } else {
+                    $last_offset = ($max_size - 1);
+                    $sql = "select score 
+                        from tetris_scores
+                        limit 1 offset $last_offset";
+                    $result = $conn->query($sql);
+                    $score_to_beat = $result->fetch_row()[0];
+                    if ($score > $score_to_beat) {
+                        $sql = "delete 
+                            from tetris_scores
+                            order by score asc 
+                            limit 1";
+
+                        $conn->query($sql);
+                        push_score($conn, $name, $score);
+                    } else echo '{"result": {"message": "Score is not a highscore.", "code": 0}}';
+                }
+            }
         }
     } catch (Exception $e) {
-        echo '{"error": {"text": $e->getMessage()}}';
+        echo '{"error": {"text": "'.$e->getMessage().'"}}';
     }
 });
 
@@ -154,7 +177,6 @@ $app->post('/api/tetris_scores/fire/add', function(Request $request, Response $r
 			$data = $request->getParsedBody();
 
             push_score_fire($conn, $path, $data);
-			echo '{"result": {"message": "Highscore added.", "code": 1}}';
         } else {
 			$data = $conn->get($path, Array('orderBy' => '"score"', 'limitToFirst' => 1));
 			$data = json_decode($data, true);
@@ -163,9 +185,8 @@ $app->post('/api/tetris_scores/fire/add', function(Request $request, Response $r
             $high_score = $data[$key]['score'];
             if($score > $high_score) {
 				$data = $request->getParsedBody();
-
+    
                 push_score_fire($conn, $path, $data);
-                echo '{"result": {"message": "Highscore added.", "code": 1}}';
             } else echo '{"result": {"message": "Score is not a highscore.", "code": 0}}';
         }
     } catch (ErrorException $e) {
@@ -179,6 +200,7 @@ function push_score_fire($conn, $path, $data) {
     $data['date'] = date('Y-m-d');
     $data['ip-address'] = $_SERVER['REMOTE_ADDR'];
     $conn->push($path, $data); 
+    echo '{"result": {"message": "Highscore added.", "code": 1}}';
 
 }
 
@@ -200,6 +222,8 @@ function push_score($conn, $name, $score) {
         $push->close();
 
     } catch (Exception $e) {
-        echo '{"error": {"text": $e->getMessage()}}';
+        echo '{"error": {"text": "'.$e->getMessage().'"}}';
     }
 }
+
+?>
