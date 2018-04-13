@@ -17,7 +17,8 @@ $app->get('/api/tetris_scores', function(Request $request, Response $response) {
 
             echo '{"error": {"text": "'.$conn->error.'"}}';
         } else {
-            echo json_encode($result->fetch_all($resulttype = MYSQLI_ASSOC));
+            $data = $result->fetch_all($resulttype = MYSQLI_ASSOC);
+            echo json_encode($data, JSON_NUMERIC_CHECK);
         }
     } catch (ErrorException $e) {
         echo '{"error": {"text": "'.$e->getMessage().'"}}';
