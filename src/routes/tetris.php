@@ -176,8 +176,7 @@ $app->post('/api/tetris_scores/fire/add', function(Request $request, Response $r
 
         if(count($data) < $max_size) {
 			$data = $request->getParsedBody();
-
-            push_score_fire($conn, $path, $data);
+            push_score_fire($conn, $path, $data, false);
         } else {
 			$data = $conn->get($path, Array('orderBy' => '"score"', 'limitToFirst' => 1));
 			$data = json_decode($data, true);
@@ -187,7 +186,7 @@ $app->post('/api/tetris_scores/fire/add', function(Request $request, Response $r
             if($score > $high_score) {
 				$data = $request->getParsedBody();
     
-                push_score_fire($conn, $path, $data);
+                push_score_fire($conn, $path."/".$key, $data, true);
             } else echo '{"result": {"message": "Score is not a highscore.", "code": 0}}';
         }
     } catch (ErrorException $e) {
@@ -196,11 +195,12 @@ $app->post('/api/tetris_scores/fire/add', function(Request $request, Response $r
     
 });
 
-function push_score_fire($conn, $path, $data) {
+function push_score_fire($conn, $path, $data, $replace) {
 
     $data['date'] = date('Y-m-d');
     $data['ip-address'] = $_SERVER['REMOTE_ADDR'];
-    $conn->push($path, $data); 
+    if($replace) $conn->set($path, $data);
+    else $conn->push($path, $data); 
     echo '{"result": {"message": "Highscore added.", "code": 1}}';
 
 }
