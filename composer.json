@@ -1,6 +1,7 @@
 {
     "require": {
         "slim/slim": "^3.0",
-        "ktamas77/firebase-php": "dev-master"
+        "ktamas77/firebase-php": "dev-master",
+        "mongodb/mongodb": "^1.3"
     }
 }

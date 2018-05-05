@@ -8,6 +8,7 @@ class ComposerStaticInit30cd7b16a64f51d93da258e379587ee4
 {
     public static $files = array (
         '253c157292f75eb38082b5acb06f3f01' => __DIR__ . '/..' . '/nikic/fast-route/src/functions.php',
+        '3a37ebac017bc098e9a86b35401e7a68' => __DIR__ . '/..' . '/mongodb/mongodb/src/functions.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -19,6 +20,10 @@ class ComposerStaticInit30cd7b16a64f51d93da258e379587ee4
         array (
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Container\\' => 14,
+        ),
+        'M' => 
+        array (
+            'MongoDB\\' => 8,
         ),
         'I' => 
         array (
@@ -42,6 +47,10 @@ class ComposerStaticInit30cd7b16a64f51d93da258e379587ee4
         'Psr\\Container\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/container/src',
+        ),
+        'MongoDB\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/mongodb/mongodb/src',
         ),
         'Interop\\Container\\' => 
         array (

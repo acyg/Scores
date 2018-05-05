@@ -1,13 +1,15 @@
 <?php
 
-use \Psr\Http\Message\ServerRequestInterface as Request;
-use \Psr\Http\Message\ResponseInterface as Response;
+//use \Psr\Http\Message\ServerRequestInterface as Request;
+//use \Psr\Http\Message\ResponseInterface as Response;
 
 require '../vendor/autoload.php';
 require '../src/config/db.php';
-require '../src/config/fire.php';
 
 $app = new \Slim\App;
 
 require '../src/routes/tetris.php';
+require '../src/routes/tetris-fire.php';
+//require '../src/routes/tetris-mongo.php';
+
 $app->run();
