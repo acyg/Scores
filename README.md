@@ -2,7 +2,7 @@
 
 A PHP slim app providing a RESTful API through Apache and MYSQL or Google Firebase.
 
-public endpoints:
+When hosted on AWS, public endpoints:
 http://13.56.107.102/scores/public/api/tetris_scores get top scores.
 http://13.56.107.102/scores/public/api/tetris_scores/fire get top scores from firebase.
 
